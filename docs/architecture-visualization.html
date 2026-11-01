@@ -1,0 +1,1124 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>cuLenia Architecture Visualization</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --panel-2: #eef2f5;
+      --text: #162027;
+      --muted: #5f6f7c;
+      --line: #d7e0e7;
+      --red: #dc4b4b;
+      --green: #2c9f69;
+      --blue: #2f6fd6;
+      --amber: #c0841a;
+      --cyan: #1b91a8;
+      --ink: #22313a;
+      --shadow: 0 12px 30px rgba(21, 35, 44, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: center;
+      padding: 22px 28px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(22px, 3vw, 34px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-top: 6px;
+      max-width: 820px;
+      line-height: 1.45;
+    }
+
+    .status {
+      display: grid;
+      grid-template-columns: repeat(3, auto);
+      gap: 8px;
+      align-items: center;
+      justify-content: end;
+    }
+
+    .pill {
+      min-height: 34px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      border-radius: 8px;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(360px, 42vw) 1fr;
+      gap: 18px;
+      padding: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .sim {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: calc(100vh - 118px);
+      overflow: hidden;
+    }
+
+    .sim-head,
+    .sim-foot,
+    .section-head {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .sim-foot {
+      border-top: 1px solid var(--line);
+      border-bottom: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      min-height: 360px;
+      background: #10181d;
+      overflow: hidden;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: auto;
+    }
+
+    .canvas-meta {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .metric {
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(255, 255, 255, 0.64);
+      border-radius: 8px;
+      padding: 10px;
+      min-width: 0;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 15px;
+      overflow-wrap: anywhere;
+    }
+
+    .control-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .segmented {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .segmented button {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--ink);
+      min-height: 36px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .segmented button[aria-pressed="true"] {
+      color: #ffffff;
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .switch-row input {
+      width: 42px;
+      height: 22px;
+      accent-color: var(--green);
+    }
+
+    .content {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .tabs button {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      min-height: 36px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .tabs button[aria-selected="true"] {
+      background: var(--ink);
+      color: #ffffff;
+    }
+
+    .view {
+      display: none;
+      gap: 18px;
+    }
+
+    .view.active {
+      display: grid;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .section-body {
+      padding: 16px;
+    }
+
+    .flow {
+      display: grid;
+      gap: 10px;
+    }
+
+    .flow-row {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .flow-key {
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      padding: 12px;
+      font-weight: 700;
+    }
+
+    .flow-value {
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      padding: 12px;
+      background: #ffffff;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #ffffff;
+      display: grid;
+      gap: 8px;
+    }
+
+    .card.active-card {
+      border-color: var(--green);
+      box-shadow: inset 0 0 0 1px var(--green);
+    }
+
+    .card h3 {
+      font-size: 17px;
+      line-height: 1.25;
+    }
+
+    .card p,
+    .file-row p,
+    .note {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      border-radius: 7px;
+      background: var(--panel-2);
+      color: var(--ink);
+      padding: 5px 7px;
+      font-size: 12px;
+      border: 1px solid var(--line);
+    }
+
+    .file-map {
+      display: grid;
+      gap: 8px;
+    }
+
+    .file-row {
+      display: grid;
+      grid-template-columns: minmax(150px, 230px) 1fr;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #ffffff;
+    }
+
+    .file-name {
+      font-family: Consolas, "Courier New", monospace;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+    }
+
+    .bars {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bar {
+      display: grid;
+      grid-template-columns: 140px 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .bar-track {
+      height: 12px;
+      border-radius: 999px;
+      background: var(--panel-2);
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: var(--value);
+      background: var(--color);
+    }
+
+    .memory {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .memory-block {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #ffffff;
+      display: grid;
+      gap: 10px;
+    }
+
+    .lane {
+      min-height: 34px;
+      border-radius: 7px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .lane span {
+      display: grid;
+      place-items: center;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .r { background: var(--red); }
+    .g { background: var(--green); }
+    .b { background: var(--blue); }
+    .a { background: var(--amber); }
+    .c { background: var(--cyan); }
+    .i { background: var(--ink); }
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 1100px) {
+      header,
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .status {
+        justify-content: start;
+      }
+
+      .sim {
+        min-height: 720px;
+      }
+
+      .grid-2,
+      .memory {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      header {
+        padding: 16px;
+      }
+
+      main {
+        padding: 12px;
+      }
+
+      .canvas-meta,
+      .grid-3,
+      .flow-row,
+      .file-row,
+      .bar {
+        grid-template-columns: 1fr;
+      }
+
+      .sim {
+        min-height: 780px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>cuLenia Architecture Explorer</h1>
+        <p class="subtitle">Интерактивная карта CUDA/C++ проекта: режимы вычислений, pipeline Lenia, память, рендеринг и сцены из `main.cpp`.</p>
+      </div>
+      <div class="status" aria-label="Текущее состояние">
+        <div class="pill" id="status-mode">GPU-FFT16</div>
+        <div class="pill" id="status-scene">Tessellatium</div>
+        <div class="pill" id="status-batch">batchFFT on</div>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel sim" aria-label="Lenia preview">
+        <div class="sim-head">
+          <h2>Lenia preview</h2>
+          <p class="note">Canvas показывает динамику, вдохновленную параметрами проекта; это браузерная архитектурная визуализация, а не замена CUDA-симулятору.</p>
+        </div>
+
+        <div class="canvas-wrap">
+          <canvas id="world" width="360" height="360" aria-label="Lenia-inspired animated field"></canvas>
+          <div class="canvas-meta">
+            <div class="metric">
+              <span>Grid</span>
+              <strong id="metric-size">1024 x 1024</strong>
+            </div>
+            <div class="metric">
+              <span>Rules</span>
+              <strong id="metric-rules">15</strong>
+            </div>
+            <div class="metric">
+              <span>T</span>
+              <strong id="metric-t">8</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="sim-foot">
+          <div class="control-group">
+            <div class="label">Сцена</div>
+            <div class="segmented" id="scene-buttons"></div>
+          </div>
+
+          <div class="control-group">
+            <div class="label">Режим</div>
+            <div class="segmented" id="mode-buttons"></div>
+          </div>
+
+          <div class="switch-row">
+            <div>
+              <strong>Batched FFT</strong>
+              <p class="note">Отражает переключатель `B` в приложении.</p>
+            </div>
+            <input id="batch-toggle" type="checkbox" checked aria-label="Batched FFT">
+          </div>
+        </div>
+      </section>
+
+      <section class="content">
+        <nav class="tabs" aria-label="Разделы визуализации">
+          <button type="button" data-tab="pipeline" aria-selected="true">Pipeline</button>
+          <button type="button" data-tab="modes" aria-selected="false">Режимы</button>
+          <button type="button" data-tab="files" aria-selected="false">Файлы</button>
+          <button type="button" data-tab="memory" aria-selected="false">Память</button>
+        </nav>
+
+        <div class="view active" id="view-pipeline">
+          <section class="section">
+            <div class="section-head">
+              <h2>Шаг выполнения</h2>
+              <span class="tag">main.cpp loop</span>
+            </div>
+            <div class="section-body">
+              <div class="flow" id="pipeline-flow"></div>
+            </div>
+          </section>
+
+          <div class="grid-2">
+            <section class="section">
+              <div class="section-head">
+                <h2>Сцена</h2>
+                <span class="tag" id="scene-tag">3 channels</span>
+              </div>
+              <div class="section-body">
+                <div class="cards" id="scene-cards"></div>
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-head">
+                <h2>Горячие клавиши</h2>
+                <span class="tag">runtime</span>
+              </div>
+              <div class="section-body">
+                <div class="grid-3">
+                  <div class="card"><h3>1-5</h3><p>Переключение compute mode.</p></div>
+                  <div class="card"><h3>O / T</h3><p>Выбор `Orbium` или `Tessellatium`.</p></div>
+                  <div class="card"><h3>R / F</h3><p>Изменение частоты рендера.</p></div>
+                  <div class="card"><h3>B</h3><p>Переключение batched FFT.</p></div>
+                  <div class="card"><h3>Up / Down</h3><p>Изменение размера сетки.</p></div>
+                  <div class="card"><h3>Left / Right</h3><p>Изменение `T`.</p></div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div class="view" id="view-modes">
+          <section class="section">
+            <div class="section-head">
+              <h2>Compute modes</h2>
+              <span class="tag" id="active-mode-tag">DeviceFFT16Mode</span>
+            </div>
+            <div class="section-body">
+              <div class="cards" id="mode-cards"></div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-head">
+              <h2>Сравнение стоимости</h2>
+              <span class="tag">relative</span>
+            </div>
+            <div class="section-body">
+              <div class="bars" id="mode-bars"></div>
+            </div>
+          </section>
+        </div>
+
+        <div class="view" id="view-files">
+          <section class="section">
+            <div class="section-head">
+              <h2>Карта файлов</h2>
+              <a href="PROJECT_DOCUMENTATION.md">PROJECT_DOCUMENTATION.md</a>
+            </div>
+            <div class="section-body">
+              <div class="file-map" id="file-map"></div>
+            </div>
+          </section>
+        </div>
+
+        <div class="view" id="view-memory">
+          <section class="section">
+            <div class="section-head">
+              <h2>Layout памяти</h2>
+              <span class="tag">LeniaWorld</span>
+            </div>
+            <div class="section-body memory">
+              <div class="memory-block">
+                <h3>Direct CUDA modes</h3>
+                <p class="note">Каждый канал и каждое ядро выделяются отдельным массивом.</p>
+                <div class="lane"><span class="r">gridA[0]</span><span class="g">gridA[1]</span><span class="b">gridA[2]</span></div>
+                <div class="lane"><span class="r">gridB[0]</span><span class="g">gridB[1]</span><span class="b">gridB[2]</span></div>
+                <div class="lane"><span class="a">kernel[0]</span><span class="c">...</span><span class="i">kernel[n]</span></div>
+              </div>
+
+              <div class="memory-block">
+                <h3>FFT modes</h3>
+                <p class="note">Каналы лежат подряд, чтобы `cufftPlanMany` мог обрабатывать batches.</p>
+                <div class="lane"><span class="r">ch0</span><span class="g">ch1</span><span class="b">ch2</span></div>
+                <div class="lane"><span class="a">sourceFFT</span><span class="c">destFFT</span><span class="i">dest</span></div>
+                <div class="lane"><span class="r">kernelFFT</span><span class="g">rules</span><span class="b">render PBO</span></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-head">
+              <h2>Ping-pong buffers</h2>
+              <span class="tag">toGridB</span>
+            </div>
+            <div class="section-body">
+              <div class="flow">
+                <div class="flow-row">
+                  <div class="flow-key">toGridB = true</div>
+                  <div class="flow-value">Чтение из `gridA`, запись в `gridB`, затем переключение флага.</div>
+                </div>
+                <div class="flow-row">
+                  <div class="flow-key">toGridB = false</div>
+                  <div class="flow-value">Чтение из `gridB`, запись в `gridA`, затем переключение флага.</div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const scenes = {
+      orbium: {
+        label: "Orbium",
+        channels: 1,
+        rules: 1,
+        t: 16,
+        size: 1024,
+        colors: [[0, 212, 112]],
+        threshold: 0.2,
+        cards: [
+          ["Канал", "Один зеленый канал с плотной случайной инициализацией."],
+          ["Правило", "source 0 -> destination 0, radius 15, weight 1."],
+          ["Назначение", "Минимальная сцена для проверки поведения ядра и роста."]
+        ]
+      },
+      tessellatium: {
+        label: "Tessellatium",
+        channels: 3,
+        rules: 15,
+        t: 8,
+        size: 1024,
+        colors: [[224, 62, 62], [48, 170, 101], [54, 110, 215]],
+        threshold: 0.5,
+        cards: [
+          ["Каналы", "Красный, зеленый и синий каналы с отдельными состояниями."],
+          ["Правила", "15 правил: внутрикaнальные и межканальные влияния."],
+          ["Назначение", "Насыщенная RGB-сцена для стресс-теста FFT режимов."]
+        ]
+      }
+    };
+
+    const modes = {
+      noInterop: {
+        label: "GPU-noInterop32",
+        className: "Device32noInteropMode",
+        precision: "FP32",
+        convolution: "direct",
+        render: "GPU -> host -> glDrawPixels",
+        score: 46,
+        color: "#c0841a",
+        tags: ["CUDA", "FP32", "no interop"],
+        text: "Прямая пространственная свертка. Пиксели копируются из CUDA buffer в host-память перед OpenGL."
+      },
+      interop: {
+        label: "GPU-Interop32",
+        className: "Device32Mode",
+        precision: "FP32",
+        convolution: "direct",
+        render: "CUDA PBO -> texture",
+        score: 58,
+        color: "#1b91a8",
+        tags: ["CUDA", "FP32", "OpenGL interop"],
+        text: "Прямая свертка с записью render pixels прямо в OpenGL Pixel Buffer Object."
+      },
+      fft32: {
+        label: "GPU-FFT32",
+        className: "DeviceFFT32Mode",
+        precision: "FP32",
+        convolution: "cuFFT",
+        render: "CUDA PBO -> texture",
+        score: 82,
+        color: "#2f6fd6",
+        tags: ["cuFFT", "FP32", "batched"],
+        text: "Каналы и правила обрабатываются через R2C/C2R FFT, поддерживается batched execution."
+      },
+      fft64: {
+        label: "GPU-FFT64",
+        className: "DeviceFFT64Mode",
+        precision: "FP64",
+        convolution: "cuFFT",
+        render: "CUDA PBO -> texture",
+        score: 64,
+        color: "#6b5fb5",
+        tags: ["cuFFT", "FP64", "accuracy"],
+        text: "Double precision путь для проверки точности с большей стоимостью памяти и вычислений."
+      },
+      fft16: {
+        label: "GPU-FFT16",
+        className: "DeviceFFT16Mode",
+        precision: "BF16",
+        convolution: "cuFFT Xt",
+        render: "CUDA PBO -> texture",
+        score: 92,
+        color: "#2c9f69",
+        tags: ["cuFFT Xt", "BF16", "default"],
+        text: "Стартовый режим. Использует BF16/BF162 и paired updates для высокой пропускной способности."
+      }
+    };
+
+    const pipeline = [
+      ["GLFW", "`glfwInit`, окно 1024 x 1024, OpenGL context, GLEW."],
+      ["Scene init", "`initOrbium` или `initTesselatium` формирует channels/rules."],
+      ["Mode init", "Device-режим создает `HostMode`, копирует сетки и ядра на GPU."],
+      ["Compute", "`mode->compute(render, batchFFT)` выполняет direct или FFT шаг."],
+      ["Finalize", "Growth делится на `T`, результат clamp в диапазон 0..1."],
+      ["Render", "Пиксели собираются по цветам каналов и выводятся через OpenGL."]
+    ];
+
+    const files = [
+      ["main.cpp", "Точка входа, сцены, горячие клавиши, FPS, главный цикл GLFW."],
+      ["lenia.h", "Rule, LeniaWorld, MAX constants, CUDA/OpenGL includes, error helper."],
+      ["lenia.cu", "randomGrid, zeroRenderGrid, initKernel, direct convolution, growth."],
+      ["Mode.h", "Абстрактный интерфейс `compute` и `render`."],
+      ["HostMode.cpp", "CPU реализация и общий host initializer для GPU modes."],
+      ["Device32noInteropMode.cu", "CUDA direct FP32 без OpenGL interop."],
+      ["Device32Mode.cu", "CUDA direct FP32 с PBO interop."],
+      ["DeviceFFT32Mode.cu", "FP32 cuFFT path и batched plans."],
+      ["DeviceFFT64Mode.cu", "FP64 cuFFT path."],
+      ["DeviceFFT16Mode.cu", "BF16 cuFFT Xt path и `__nv_bfloat162` kernels."],
+      ["Lenia.vcxproj", "Visual Studio CUDA 12.3 project, `sm_80`, linker dependencies."]
+    ];
+
+    const state = {
+      scene: "tessellatium",
+      mode: "fft16",
+      batch: true,
+      tab: "pipeline"
+    };
+
+    const sceneButtons = document.getElementById("scene-buttons");
+    const modeButtons = document.getElementById("mode-buttons");
+    const batchToggle = document.getElementById("batch-toggle");
+    const worldCanvas = document.getElementById("world");
+    const ctx = worldCanvas.getContext("2d", { alpha: false });
+
+    const sim = {
+      width: 144,
+      height: 144,
+      channels: [],
+      next: [],
+      tick: 0
+    };
+
+    function createButtons() {
+      Object.entries(scenes).forEach(([key, scene]) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = scene.label;
+        button.addEventListener("click", () => {
+          state.scene = key;
+          seedWorld();
+          renderAll();
+        });
+        sceneButtons.appendChild(button);
+      });
+
+      Object.entries(modes).forEach(([key, mode]) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = mode.label;
+        button.addEventListener("click", () => {
+          state.mode = key;
+          renderAll();
+        });
+        modeButtons.appendChild(button);
+      });
+    }
+
+    function seedWorld() {
+      const scene = scenes[state.scene];
+      const cells = sim.width * sim.height;
+      sim.channels = Array.from({ length: scene.channels }, () => new Float32Array(cells));
+      sim.next = Array.from({ length: scene.channels }, () => new Float32Array(cells));
+
+      for (let channel = 0; channel < scene.channels; channel += 1) {
+        const field = sim.channels[channel];
+        const blobCount = scene.channels === 1 ? 28 : 38;
+
+        for (let blob = 0; blob < blobCount; blob += 1) {
+          const centerX = Math.floor(Math.random() * sim.width);
+          const centerY = Math.floor(Math.random() * sim.height);
+          const radius = 5 + Math.random() * (scene.channels === 1 ? 16 : 11);
+          const intensity = 0.3 + Math.random() * 0.7;
+
+          for (let y = Math.floor(centerY - radius * 2); y <= centerY + radius * 2; y += 1) {
+            for (let x = Math.floor(centerX - radius * 2); x <= centerX + radius * 2; x += 1) {
+              const xx = (x + sim.width) % sim.width;
+              const yy = (y + sim.height) % sim.height;
+              const dx = Math.min(Math.abs(x - centerX), sim.width - Math.abs(x - centerX));
+              const dy = Math.min(Math.abs(y - centerY), sim.height - Math.abs(y - centerY));
+              const distance2 = dx * dx + dy * dy;
+              const value = Math.exp(-distance2 / (2 * radius * radius)) * intensity;
+              const index = yy * sim.width + xx;
+              field[index] = Math.min(1, field[index] + value);
+            }
+          }
+        }
+      }
+    }
+
+    function sample(field, x, y) {
+      const xx = (x + sim.width) % sim.width;
+      const yy = (y + sim.height) % sim.height;
+      return field[yy * sim.width + xx];
+    }
+
+    function stepWorld() {
+      const scene = scenes[state.scene];
+      const mode = modes[state.mode];
+      const speed = mode.convolution === "cuFFT" || mode.convolution === "cuFFT Xt" ? 0.28 : 0.2;
+      const cells = sim.width * sim.height;
+
+      for (let channel = 0; channel < scene.channels; channel += 1) {
+        const src = sim.channels[channel];
+        const dst = sim.next[channel];
+        const other = sim.channels[(channel + 1) % scene.channels] || src;
+        const prev = sim.channels[(channel + scene.channels - 1) % scene.channels] || src;
+        const mu = state.scene === "orbium" ? 0.34 : 0.22 + channel * 0.08;
+        const sigma = state.mode === "fft64" ? 0.072 : 0.095;
+
+        for (let y = 0; y < sim.height; y += 1) {
+          for (let x = 0; x < sim.width; x += 1) {
+            const index = y * sim.width + x;
+            const near =
+              sample(src, x - 1, y) + sample(src, x + 1, y) +
+              sample(src, x, y - 1) + sample(src, x, y + 1);
+            const diag =
+              sample(src, x - 1, y - 1) + sample(src, x + 1, y - 1) +
+              sample(src, x - 1, y + 1) + sample(src, x + 1, y + 1);
+            const far =
+              sample(src, x - 3, y) + sample(src, x + 3, y) +
+              sample(src, x, y - 3) + sample(src, x, y + 3);
+            const cross = sample(other, x + 2, y) * 0.05 - sample(prev, x, y - 2) * 0.035;
+            const blur = near * 0.11 + diag * 0.065 + far * 0.035;
+            const u = blur + src[index] * 0.08 + cross;
+            const growth = 2 * Math.exp(-((u - mu) * (u - mu)) / (2 * sigma * sigma)) - 1;
+            const diffusion = blur / 0.84 - src[index];
+            const value = src[index] * 0.976 + diffusion * 0.075 + growth * speed / scene.t;
+            dst[index] = Math.max(0, Math.min(1, value));
+          }
+        }
+      }
+
+      for (let channel = 0; channel < scene.channels; channel += 1) {
+        const temp = sim.channels[channel];
+        sim.channels[channel] = sim.next[channel];
+        sim.next[channel] = temp;
+      }
+
+      if (sim.tick % 120 === 0) {
+        const field = sim.channels[0];
+        for (let i = 0; i < cells; i += 37) {
+          field[i] = Math.min(1, field[i] + Math.random() * 0.12);
+        }
+      }
+
+      sim.tick += 1;
+    }
+
+    function drawWorld() {
+      const scene = scenes[state.scene];
+      const image = ctx.createImageData(sim.width, sim.height);
+      const data = image.data;
+
+      for (let i = 0; i < sim.width * sim.height; i += 1) {
+        let red = 8;
+        let green = 12;
+        let blue = 14;
+
+        for (let channel = 0; channel < scene.channels; channel += 1) {
+          const value = sim.channels[channel][i];
+          const color = scene.colors[channel];
+          red += value * color[0];
+          green += value * color[1];
+          blue += value * color[2];
+        }
+
+        const offset = i * 4;
+        data[offset] = Math.min(255, red);
+        data[offset + 1] = Math.min(255, green);
+        data[offset + 2] = Math.min(255, blue);
+        data[offset + 3] = 255;
+      }
+
+      const scratch = document.createElement("canvas");
+      scratch.width = sim.width;
+      scratch.height = sim.height;
+      scratch.getContext("2d").putImageData(image, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.filter = "blur(0.8px) saturate(1.18) contrast(1.04)";
+      ctx.drawImage(scratch, 0, 0, worldCanvas.width, worldCanvas.height);
+      ctx.filter = "none";
+    }
+
+    function renderPipeline() {
+      const flow = document.getElementById("pipeline-flow");
+      flow.innerHTML = "";
+      pipeline.forEach(([key, value]) => {
+        const row = document.createElement("div");
+        row.className = "flow-row";
+        row.innerHTML = `<div class="flow-key">${key}</div><div class="flow-value">${value}</div>`;
+        flow.appendChild(row);
+      });
+    }
+
+    function renderSceneCards() {
+      const scene = scenes[state.scene];
+      const root = document.getElementById("scene-cards");
+      root.innerHTML = "";
+      scene.cards.forEach(([title, text]) => {
+        const card = document.createElement("article");
+        card.className = "card";
+        card.innerHTML = `<h3>${title}</h3><p>${text}</p>`;
+        root.appendChild(card);
+      });
+      document.getElementById("scene-tag").textContent = `${scene.channels} channels`;
+    }
+
+    function renderModeCards() {
+      const root = document.getElementById("mode-cards");
+      root.innerHTML = "";
+      Object.entries(modes).forEach(([key, mode]) => {
+        const card = document.createElement("article");
+        card.className = `card ${key === state.mode ? "active-card" : ""}`;
+        card.innerHTML = `
+          <h3>${mode.className}</h3>
+          <p>${mode.text}</p>
+          <div class="tag-list">${mode.tags.map((tag) => `<span class="tag">${tag}</span>`).join("")}</div>
+        `;
+        root.appendChild(card);
+      });
+      document.getElementById("active-mode-tag").textContent = modes[state.mode].className;
+    }
+
+    function renderBars() {
+      const root = document.getElementById("mode-bars");
+      root.innerHTML = "";
+      Object.values(modes).forEach((mode) => {
+        const row = document.createElement("div");
+        row.className = "bar";
+        row.innerHTML = `
+          <strong>${mode.label}</strong>
+          <div class="bar-track"><div class="bar-fill" style="--value: ${mode.score}%; --color: ${mode.color}"></div></div>
+          <span>${mode.precision}</span>
+        `;
+        root.appendChild(row);
+      });
+    }
+
+    function renderFileMap() {
+      const root = document.getElementById("file-map");
+      root.innerHTML = "";
+      files.forEach(([name, text]) => {
+        const row = document.createElement("div");
+        row.className = "file-row";
+        row.innerHTML = `<div class="file-name">${name}</div><p>${text}</p>`;
+        root.appendChild(row);
+      });
+    }
+
+    function renderButtons() {
+      [...sceneButtons.children].forEach((button, index) => {
+        const key = Object.keys(scenes)[index];
+        button.setAttribute("aria-pressed", String(key === state.scene));
+      });
+
+      [...modeButtons.children].forEach((button, index) => {
+        const key = Object.keys(modes)[index];
+        button.setAttribute("aria-pressed", String(key === state.mode));
+      });
+    }
+
+    function renderStatus() {
+      const scene = scenes[state.scene];
+      const mode = modes[state.mode];
+      document.getElementById("status-mode").textContent = mode.label;
+      document.getElementById("status-scene").textContent = scene.label;
+      document.getElementById("status-batch").textContent = state.batch ? "batchFFT on" : "batchFFT off";
+      document.getElementById("metric-size").textContent = `${scene.size} x ${scene.size}`;
+      document.getElementById("metric-rules").textContent = String(scene.rules);
+      document.getElementById("metric-t").textContent = String(scene.t);
+    }
+
+    function renderTabs() {
+      document.querySelectorAll(".tabs button").forEach((button) => {
+        const active = button.dataset.tab === state.tab;
+        button.setAttribute("aria-selected", String(active));
+      });
+
+      document.querySelectorAll(".view").forEach((view) => {
+        view.classList.toggle("active", view.id === `view-${state.tab}`);
+      });
+    }
+
+    function renderAll() {
+      renderButtons();
+      renderStatus();
+      renderSceneCards();
+      renderModeCards();
+      renderBars();
+      renderTabs();
+    }
+
+    function loop() {
+      const iterations = state.batch ? 2 : 1;
+      for (let i = 0; i < iterations; i += 1) {
+        stepWorld();
+      }
+      drawWorld();
+      requestAnimationFrame(loop);
+    }
+
+    batchToggle.addEventListener("change", () => {
+      state.batch = batchToggle.checked;
+      renderAll();
+    });
+
+    document.querySelectorAll(".tabs button").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.tab = button.dataset.tab;
+        renderAll();
+      });
+    });
+
+    createButtons();
+    renderPipeline();
+    renderFileMap();
+    seedWorld();
+    renderAll();
+    loop();
+  </script>
+</body>
+</html>
